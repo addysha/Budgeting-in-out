@@ -101,6 +101,14 @@
         </label>
       </div>
 
+      <div class="section-h">Automatic backup</div>
+      <p class="hint" id="backupStatus">Off — your data lives only in this browser.</p>
+      <div class="row2">
+        <button class="btn" id="backupBtn">Choose backup file</button>
+        <button class="btn" id="backupOff" style="display:none">Turn off</button>
+      </div>
+      <p class="hint">Pick a file inside your OneDrive folder and every change is written to it straight away — so clearing your browser, or swapping computers, doesn't lose anything.</p>
+
       <div class="section-h">Export &amp; backup</div>
       <div class="row2">
         <button class="btn" id="csvBtn">Export to share (CSV)</button>
@@ -108,7 +116,7 @@
         <button class="btn" id="importBtn">Restore backup</button>
         <input type="file" id="importFile" accept="application/json" style="display:none" />
       </div>
-      <p class="hint">CSV opens in Excel or Sheets — good for sharing. JSON backup restores everything here. Your data lives in this browser, so back it up now and then.</p>
+      <p class="hint">CSV opens in Excel or Sheets — good for sharing. Restore backup reads either a JSON backup or the auto-backup file above.</p>
     </div>
     <div class="sheet-foot"><button class="btn" id="setClose">Done</button></div>
   </div>
@@ -123,6 +131,7 @@
 <script src="js/day-modal.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/export.js"></script>
+<script src="js/backup.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

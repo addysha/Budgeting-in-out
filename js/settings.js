@@ -7,7 +7,7 @@
     document.getElementById("startBal").value=state.startBalance;
     var msel=document.getElementById("startMonth"); msel.innerHTML=""; App.MONTHS.forEach(function(m,i){ var o=document.createElement("option"); o.value=String(i); o.textContent=m; msel.appendChild(o); }); msel.value=String(state.startM);
     document.getElementById("startYear").value=state.startY;
-    renderTagsTable(); renderRecTable(); App.show("setScrim");
+    renderTagsTable(); renderRecTable(); App.backupStatus(); App.show("setScrim");
   }
 
   function renderTagsTable(){

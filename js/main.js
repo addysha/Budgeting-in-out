@@ -39,6 +39,10 @@
   document.getElementById("startYear").addEventListener("input", function(e){ App.state.startY=+e.target.value||App.state.startY; App.save(); App.render(); });
   document.getElementById("setClose").addEventListener("click", function(){ hide("setScrim"); App.render(); });
 
+  // ---- automatic backup ----
+  document.getElementById("backupBtn").addEventListener("click", App.backupChoose);
+  document.getElementById("backupOff").addEventListener("click", App.backupDisconnect);
+
   // ---- export / restore ----
   document.getElementById("csvBtn").addEventListener("click", App.exportCSV);
   document.getElementById("exportBtn").addEventListener("click", App.exportJSON);
@@ -53,5 +57,6 @@
   Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function(s){ s.addEventListener("click", function(e){ if(e.target===s) s.classList.remove("show"); }); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ hide("dayScrim"); hide("setScrim"); } });
 
+  App.backupInit();
   App.render();
 })(window.App);
