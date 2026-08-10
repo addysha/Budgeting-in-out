@@ -12,18 +12,19 @@ window.App = window.App || {};
   App.EMO = ["💰","🏠","🛒","🍽️","⛽","🎬","🎵","💪","📱","⚡","🌐","☕","🎁","✈️","🚗","🏥","💳","📈","🧾","🐶"];
   App.FREQS = [["weekly","Weekly"],["fortnightly","Every 2 weeks"],["monthly","Monthly"],["yearly","Yearly"]];
 
+  // What a brand-new user starts with. Amounts are left blank on purpose so
+  // nobody inherits someone else's figures — tracking starts this month.
+  var now = new Date();
   App.DEFAULTS = {
-    startBalance:2000, startY:2026, startM:7,
+    startBalance:0, startY:now.getFullYear(), startM:now.getMonth(),
     tags:[
-      {name:"Salary",   type:"in",  amount:3200, emoji:"💰"},
-      {name:"Rent",     type:"out", amount:740,  emoji:"🏠"},
-      {name:"Groceries",type:"out", amount:null, emoji:"🛒"},
-      {name:"Gym",      type:"out", amount:null, emoji:"💪"},
-      {name:"Spotify",  type:"out", amount:21,   emoji:"🎵"}
+      {name:"Salary",       type:"in",  amount:null, emoji:"💰"},
+      {name:"Rent",         type:"out", amount:null, emoji:"🏠"},
+      {name:"Groceries",    type:"out", amount:null, emoji:"🛒"},
+      {name:"Power",        type:"out", amount:null, emoji:"⚡"},
+      {name:"Subscription", type:"out", amount:null, emoji:"🎵"}
     ],
-    recurring:[
-      {id:"r1", name:"Rent", type:"out", amount:740, emoji:"🏠", start:"2026-7-1", freq:"fortnightly", count:26}
-    ],
+    recurring:[],
     entries:{}
   };
 })(window.App);
