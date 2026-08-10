@@ -40,8 +40,8 @@
   document.getElementById("setClose").addEventListener("click", function(){ hide("setScrim"); App.render(); });
 
   // ---- automatic backup ----
-  document.getElementById("backupBtn").addEventListener("click", App.backupChoose);
-  document.getElementById("backupOff").addEventListener("click", App.backupDisconnect);
+  document.getElementById("backupBtn").addEventListener("click", App.backupConnect);
+  document.getElementById("backupOff").addEventListener("click", App.backupTurnOff);
 
   // ---- export / restore ----
   document.getElementById("csvBtn").addEventListener("click", App.exportCSV);
