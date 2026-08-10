@@ -179,6 +179,7 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 /* problems: red text that says what to do, sitting under the row it belongs to */
 .row-errors{display:flex; flex-direction:column; gap:4px; padding:7px 11px 8px; margin-top:6px;
   background:var(--out-bg); border:1px solid #f3c8c2; border-left:3px solid var(--out-ink); border-radius:9px}
+.row-errors:empty{display:none}
 .err{margin:0; font-size:12.5px; line-height:1.45; color:var(--out-ink)}
 .err::before{content:"! "; font-weight:700}
 input.invalid, select.invalid{border-color:var(--out-ink) !important; background:#fffafa}

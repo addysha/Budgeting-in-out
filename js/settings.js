@@ -27,9 +27,16 @@
   function showProblems(row, problems, fields){
     fields.forEach(function(name){ var el=f(row,name); if(el) el.classList.remove("invalid"); });
     var box=row.querySelector(".row-errors");
+
+    // Nothing wrong: take the box away entirely, or an empty red bar is left behind.
+    if(!problems.length){
+      if(box) box.parentNode.removeChild(box);
+      row.classList.remove("has-error");
+      return false;
+    }
+
     if(!box){ box=document.createElement("div"); box.className="row-errors"; row.appendChild(box); }
     box.innerHTML="";
-    if(!problems.length){ row.classList.remove("has-error"); return false; }
     row.classList.add("has-error");
     problems.forEach(function(p){
       var el=f(row,p.field); if(el) el.classList.add("invalid");
