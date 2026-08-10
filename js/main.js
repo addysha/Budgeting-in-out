@@ -32,12 +32,12 @@
   });
 
   // ---- settings sheet ----
-  document.getElementById("addTagRow").addEventListener("click", function(){ App.state.tags.push({name:"",type:"out",amount:null,emoji:""}); App.save(); App.renderTagsTable(); });
-  document.getElementById("addRecRow").addEventListener("click", function(){ App.state.recurring.push({id:"r"+Date.now(), name:"", type:"out", amount:0, emoji:"", start:App.dk(new Date()), freq:"monthly", count:12}); App.save(); App.renderRecTable(); });
+  document.getElementById("addTagRow").addEventListener("click", App.addTagRow);
+  document.getElementById("addRecRow").addEventListener("click", App.addRecRow);
   document.getElementById("startBal").addEventListener("input", function(e){ App.state.startBalance=parseFloat(e.target.value)||0; App.save(); App.render(); });
   document.getElementById("startMonth").addEventListener("change", function(e){ App.state.startM=+e.target.value; App.save(); App.render(); });
   document.getElementById("startYear").addEventListener("input", function(e){ App.state.startY=+e.target.value||App.state.startY; App.save(); App.render(); });
-  document.getElementById("setClose").addEventListener("click", function(){ hide("setScrim"); App.render(); });
+  document.getElementById("setClose").addEventListener("click", App.trySettingsClose);
 
   // ---- automatic backup ----
   document.getElementById("backupBtn").addEventListener("click", App.backupConnect);
@@ -54,8 +54,19 @@
   });
 
   // ---- dismissing sheets ----
-  Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function(s){ s.addEventListener("click", function(e){ if(e.target===s) s.classList.remove("show"); }); });
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ hide("dayScrim"); hide("setScrim"); } });
+  // The settings sheet checks itself first, so clicking away can't leave a
+  // half-finished row behind.
+  Array.prototype.forEach.call(document.querySelectorAll(".scrim"), function(s){
+    s.addEventListener("click", function(e){
+      if(e.target!==s) return;
+      if(s.id==="setScrim") App.trySettingsClose(); else s.classList.remove("show");
+    });
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key!=="Escape") return;
+    hide("dayScrim");
+    if(document.getElementById("setScrim").classList.contains("show")) App.trySettingsClose();
+  });
 
   App.backupInit();
   App.render();

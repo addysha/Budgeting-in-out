@@ -4,7 +4,15 @@
 
   // Every date a repeating rule lands on.
   function ruleOcc(rule){
-    var base=App.pk(rule.start), n=rule.count||0, out=[];
+    // Half-finished or nonsense rules must not reach the calendar: an unparsable
+    // start date would make every day Invalid Date, and a huge count would hang
+    // the browser, so both are refused here as well as in the form.
+    if(!rule || !App.validDayKey(rule.start)) return [];
+    var n=parseInt(rule.count,10);
+    if(!isFinite(n) || n<1) return [];
+    if(n>App.validate.MAX_TIMES) n=App.validate.MAX_TIMES;
+    if(!isFinite(parseFloat(rule.amount))) return [];
+    var base=App.pk(rule.start), out=[];
     for(var k=0;k<n;k++){
       var d;
       if(rule.freq==="weekly") d=App.addDays(base,7*k);

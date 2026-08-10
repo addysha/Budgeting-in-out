@@ -5,7 +5,7 @@
   function titleFor(){
     var view=App.view, a=view.anchor;
     if(view.mode==="day") return a.toLocaleDateString("en-NZ",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-    if(view.mode==="week"){ var rg=App.rangeFor(); var s=rg.s,e=rg.e; return s.getDate()+" "+App.MON3[s.getMonth()]+" – "+e.getDate()+" "+App.MON3[e.getMonth()]+" "+e.getFullYear(); }
+    if(view.mode==="week"){ var rg=App.rangeFor(); var s=rg.s,e=rg.e; return s.getDate()+" "+App.MON3[s.getMonth()]+" to "+e.getDate()+" "+App.MON3[e.getMonth()]+" "+e.getFullYear(); }
     if(view.mode==="month") return App.MONTHS[a.getMonth()]+' <span>'+a.getFullYear()+'</span>';
     return '<span style="color:var(--ink);font-weight:800">'+a.getFullYear()+'</span>';
   }

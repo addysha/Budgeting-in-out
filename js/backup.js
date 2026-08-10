@@ -71,7 +71,7 @@
       if(pending){ pending=false; writeNow(); }
     }).catch(function(err){
       writing=false; pending=false; granted=false;
-      status("Backup paused — the file may have moved. Click the button below to fix it.");
+      status("Backup paused. The file may have moved. Click the button below to fix it.");
     });
   }
 
@@ -142,7 +142,7 @@
     var n=countEntries(existing);
     var msg="That file already has a budget in it ("+n+" entr"+(n===1?"y":"ies")+").\n\n"+
             "This app is currently empty, so it looks like you're restoring after a reset.\n\n"+
-            "OK — bring that budget back.\nCancel — start fresh and overwrite the file.";
+            "OK: bring that budget back.\nCancel: start fresh and overwrite the file.";
     if(window.confirm(msg)){ adopt(existing); writeNow(); }
     else { writeNow(); }
     return true;
@@ -153,8 +153,8 @@
     var mine=countEntries(App.state), theirs=countEntries(existing);
     var msg="That file already has a budget in it.\n\n"+
             "On screen now: "+mine+" entries\nIn that file: "+theirs+" entries\n\n"+
-            "OK — use the file's version (what's on screen is replaced).\n"+
-            "Cancel — keep what's on screen (the file is overwritten).";
+            "OK: use the file's version (what's on screen is replaced).\n"+
+            "Cancel: keep what's on screen (the file is overwritten).";
     if(window.confirm(msg)) adopt(existing);
     writeNow();
     return true;
@@ -170,14 +170,14 @@
   // ---- status line ----
   function describe(){
     if(!App.backupSupported)
-      return "This browser can't save to a file automatically. Use Backup (JSON) now and then — in Chrome or Edge it happens on its own.";
+      return "This browser can't save to a file automatically. Use Backup (JSON) now and then. In Chrome or Edge it happens on its own.";
     if(!handle)
       return "Not on yet. Your budget is only in this browser, so clearing your browsing data would erase it.";
     if(!granted)
-      return "Paused — " + handle.name + " needs permission again.";
+      return "Paused. " + handle.name + " needs permission again.";
     var m=meta();
     if(!m.last) return "Saving to " + handle.name + "…";
-    return "On — saving to " + handle.name + ". Last saved " +
+    return "On, saving to " + handle.name + ". Last saved " +
       new Date(m.last).toLocaleString("en-NZ",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) + ".";
   }
   function status(msg){

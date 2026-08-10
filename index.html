@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<title>In &amp; Out — Calendar</title>
+<title>In &amp; Out Calendar</title>
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -71,6 +71,7 @@
         <div class="checkline" id="saveTagLine" style="display:none">
           <input type="checkbox" id="saveTag" /> <label for="saveTag">Save as a reusable tag</label>
         </div>
+        <div class="row-errors" id="addError" style="display:none"></div>
         <button class="btn primary" id="addBtn">Add to this day</button>
       </div>
     </div>
@@ -109,8 +110,8 @@
         <button class="btn primary" id="backupBtn">Turn on automatic saving</button>
         <button class="btn" id="backupOff" style="display:none">Turn off</button>
       </div>
-      <p class="hint">Choose a file — somewhere that syncs, like OneDrive, is ideal — and every change is written to it as you go. If this browser is ever cleared, pick that same file again and your budget comes back.</p>
-      <p class="hint"><strong>Private by design:</strong> nothing is ever sent over the internet. Your figures stay on this device, in your browser and in the file you choose. Nobody else can see them — not even whoever shared this app with you.</p>
+      <p class="hint">Choose a file, somewhere that syncs like OneDrive is ideal, and every change is written to it as you go. If this browser is ever cleared, pick that same file again and your budget comes back.</p>
+      <p class="hint"><strong>Private by design:</strong> nothing is ever sent over the internet. Your figures stay on this device, in your browser and in the file you choose. Nobody else can see them, not even whoever shared this app with you.</p>
 
       <div class="section-h">Export &amp; backup</div>
       <div class="row2">
@@ -119,7 +120,7 @@
         <button class="btn" id="importBtn">Restore backup</button>
         <input type="file" id="importFile" accept="application/json" style="display:none" />
       </div>
-      <p class="hint">CSV opens in Excel or Sheets — good for sharing. Restore backup reads either a JSON backup or the auto-backup file above.</p>
+      <p class="hint">CSV opens in Excel or Sheets, which is good for sharing. Restore backup reads either a JSON backup or the auto-backup file above.</p>
     </div>
     <div class="sheet-foot"><button class="btn" id="setClose">Done</button></div>
   </div>
@@ -129,6 +130,7 @@
 <script src="js/config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/dates.js"></script>
+<script src="js/validate.js"></script>
 <script src="js/calc.js"></script>
 <script src="js/render.js"></script>
 <script src="js/day-modal.js"></script>

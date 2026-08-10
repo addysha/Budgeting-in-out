@@ -48,11 +48,28 @@
       '<button class="iconbtn" title="Cancel">×</button>';
     var em=row.children[0], nm=row.children[1], ty=row.children[2], am=row.children[3], ok=row.children[4], cancel=row.children[5];
 
+    // The row is a grid, so the error lines live in a wrapper beneath it.
+    var wrap=document.createElement("div"); wrap.className="edit-wrap";
+    var errBox=document.createElement("div"); errBox.className="row-errors"; errBox.style.display="none";
+    wrap.appendChild(row); wrap.appendChild(errBox);
+
     function commit(){
-      var name=(nm.value||"").trim(), amount=parseFloat(am.value);
-      if(!name){ nm.focus(); return; }
-      if(!(amount>0)){ am.focus(); return; }
-      updateEntry(it.key, it.idx, {name:name, type:ty.value, amount:amount, emoji:em.value.trim()});
+      var name=(nm.value||"").trim(), problems=[], e;
+      if((e=App.validate.name(name))) problems.push(e);
+      if((e=App.validate.amount(am.value, "this", false))) problems.push(e);
+      nm.classList.remove("invalid"); am.classList.remove("invalid");
+      errBox.innerHTML="";
+      if(problems.length){
+        errBox.style.display="";
+        problems.forEach(function(p){
+          (p.field==="name"?nm:am).classList.add("invalid");
+          var line=document.createElement("p"); line.className="err"; line.textContent=p.msg; errBox.appendChild(line);
+        });
+        (problems[0].field==="name"?nm:am).focus();
+        return;
+      }
+      errBox.style.display="none";
+      updateEntry(it.key, it.idx, {name:name, type:ty.value, amount:parseFloat(am.value), emoji:em.value.trim()});
     }
     function cancelEdit(){ editing=null; renderEntryList(); }
 
@@ -64,7 +81,7 @@
       else if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); cancelEdit(); }
     });
     setTimeout(function(){ nm.focus(); nm.select(); },0);
-    return row;
+    return wrap;
   }
 
   function updateEntry(key,idx,patch){
@@ -93,19 +110,43 @@
       if(t.amount!=null){ amt.value=t.amount; amt.placeholder=""; } else { amt.value=""; amt.placeholder="Type the amount"; } }
   }
 
+  // Show a red line under the add form and point at the field that needs work.
+  function formError(problems){
+    var box=document.getElementById("addError");
+    ["customName","amtInput"].forEach(function(id){ document.getElementById(id).classList.remove("invalid"); });
+    box.innerHTML="";
+    if(!problems || !problems.length){ box.style.display="none"; return; }
+    box.style.display="";
+    problems.forEach(function(p){
+      var id = p.field==="name" ? "customName" : "amtInput";
+      var el=document.getElementById(id); if(el) el.classList.add("invalid");
+      var line=document.createElement("p"); line.className="err"; line.textContent=p.msg; box.appendChild(line);
+    });
+    var first=problems[0], focusId = first.field==="name" ? "customName" : "amtInput";
+    var el=document.getElementById(focusId); if(el) el.focus();
+  }
+
   function addEntry(){
     var state=App.state;
     var v=document.getElementById("tagSelect").value, amtRaw=document.getElementById("amtInput").value, emo=document.getElementById("emojiInput").value.trim();
-    var name,type,amount;
+    var name,type,amount,problems=[],e;
+
     if(v==="custom"){
-      name=(document.getElementById("customName").value||"").trim(); type=customType; amount=parseFloat(amtRaw);
-      if(!name){ document.getElementById("customName").focus(); return; }
-      if(!(amount>0)){ document.getElementById("amtInput").focus(); return; }
+      name=(document.getElementById("customName").value||"").trim(); type=customType;
+      if((e=App.validate.name(name))) problems.push(e);
+      if((e=App.validate.amount(amtRaw, "this", false))) problems.push(e);
+      if(problems.length) return formError(problems);
+      amount=parseFloat(amtRaw);
       if(document.getElementById("saveTag").checked) state.tags.push({name:name,type:type,amount:null,emoji:emo});
     } else {
-      var t=state.tags[+v]; name=t.name; type=t.type; amount=(t.amount!=null&&amtRaw==="")?t.amount:parseFloat(amtRaw);
-      if(!(amount>0)){ document.getElementById("amtInput").focus(); return; }
+      var t=state.tags[+v];
+      if(!t){ return formError([{field:"name", msg:"Choose something from the list first."}]); }
+      name=t.name; type=t.type;
+      var usingTagAmount = (t.amount!=null && amtRaw==="");
+      if(!usingTagAmount && (e=App.validate.amount(amtRaw, "this", false))) return formError([e]);
+      amount = usingTagAmount ? t.amount : parseFloat(amtRaw);
     }
+    formError(null);
     editing=null;
     var key=App.dk(curDay); if(!state.entries[key]) state.entries[key]=[];
     state.entries[key].push({name:name,type:type,amount:amount,emoji:emo});

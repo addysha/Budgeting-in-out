@@ -1,7 +1,10 @@
 /* The "ins & outs" sheet: your reusable tags and your repeating items.
    Tags are a compact table (four short fields). Repeating items have seven
    fields, which is too many for one line to stay readable, so each one is a
-   small card with its fields labelled. */
+   small card with its fields labelled.
+
+   Anything half filled in is called out in red underneath the row it belongs
+   to, with a note on how to fix it, and Done will not close until it is sorted. */
 (function (App) {
   "use strict";
 
@@ -19,6 +22,24 @@
   }
   function f(row,name){ return row.querySelector('[data-f="'+name+'"]'); }
 
+  // Paint the problems onto a row: red outline on the guilty fields, and one
+  // line of advice per problem underneath.
+  function showProblems(row, problems, fields){
+    fields.forEach(function(name){ var el=f(row,name); if(el) el.classList.remove("invalid"); });
+    var box=row.querySelector(".row-errors");
+    if(!box){ box=document.createElement("div"); box.className="row-errors"; row.appendChild(box); }
+    box.innerHTML="";
+    if(!problems.length){ row.classList.remove("has-error"); return false; }
+    row.classList.add("has-error");
+    problems.forEach(function(p){
+      var el=f(row,p.field); if(el) el.classList.add("invalid");
+      var line=document.createElement("p"); line.className="err"; line.textContent=p.msg; box.appendChild(line);
+    });
+    return true;
+  }
+
+  var TAG_FIELDS=["name","amount"], REC_FIELDS=["name","amount","start","freq","count"];
+
   // ---- tags ----
   function renderTagsTable(){
     var state=App.state, esc=App.esc, box=document.getElementById("tagsTable");
@@ -35,18 +56,28 @@
     box.appendChild(head);
 
     state.tags.forEach(function(t,idx){
+      var wrap=document.createElement("div"); wrap.className="row-wrap";
       var row=document.createElement("div"); row.className="tag-row";
       row.innerHTML='<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(t.emoji||"")+'" aria-label="Emoji" />'+
         '<input data-f="name" class="mini" type="text" value="'+esc(t.name)+'" placeholder="Name" aria-label="Name" />'+
         '<select data-f="type" class="mini" aria-label="In or out">'+typeOptions(t.type)+'</select>'+
-        '<input data-f="amount" class="mini" type="number" step="0.01" value="'+(t.amount!=null?t.amount:"")+'" placeholder="Varies" aria-label="Usual amount" />'+
-        '<button data-f="del" class="del" aria-label="Remove '+esc(t.name)+'">×</button>';
+        '<input data-f="amount" class="mini" type="number" step="0.01" min="0" value="'+(t.amount!=null?t.amount:"")+'" placeholder="Varies" aria-label="Usual amount" />'+
+        '<button data-f="del" class="del" aria-label="Remove this one">×</button>';
+      wrap.appendChild(row);
+
+      function recheck(){ showProblems(wrap, App.validate.tag(state.tags[idx]), TAG_FIELDS); }
       f(row,"emoji").addEventListener("input",function(){ state.tags[idx].emoji=this.value; App.save(); });
-      f(row,"name").addEventListener("input",function(){ state.tags[idx].name=this.value; App.save(); });
+      f(row,"name").addEventListener("input",function(){ state.tags[idx].name=this.value; App.save(); recheck(); });
       f(row,"type").addEventListener("change",function(){ state.tags[idx].type=this.value; App.save(); });
-      f(row,"amount").addEventListener("input",function(){ state.tags[idx].amount=this.value===""?null:parseFloat(this.value); App.save(); });
-      f(row,"del").addEventListener("click",function(){ state.tags.splice(idx,1); App.save(); renderTagsTable(); });
-      box.appendChild(row);
+      f(row,"amount").addEventListener("input",function(){
+        var v=this.value; state.tags[idx].amount = v===""?null:parseFloat(v);
+        App.save(); recheck();
+      });
+      f(row,"del").addEventListener("click",function(){ state.tags.splice(idx,1); App.save(); renderTagsTable(); App.render(); });
+
+      // Only nag about a row already worked on, not one just added.
+      if(!App.validate.untouchedTag(t)) recheck();
+      box.appendChild(wrap);
     });
   }
 
@@ -68,26 +99,31 @@
           '<label class="minifield emoji-col">Emoji<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(r.emoji||"")+'" /></label>'+
           '<label class="minifield grow">Name<input data-f="name" class="mini" type="text" value="'+esc(r.name)+'" placeholder="e.g. Rent" /></label>'+
           '<label class="minifield">In or out<select data-f="type" class="mini">'+typeOptions(r.type)+'</select></label>'+
-          '<label class="minifield">Amount<input data-f="amount" class="mini" type="number" step="0.01" value="'+(r.amount!=null?r.amount:"")+'" /></label>'+
+          '<label class="minifield">Amount<input data-f="amount" class="mini" type="number" step="0.01" min="0" value="'+(r.amount!=null&&r.amount!==0?r.amount:"")+'" /></label>'+
         '</div>'+
         '<div class="rec-line">'+
           '<label class="minifield grow">First one on<input data-f="start" class="mini" type="date" value="'+App.isoOf(r.start)+'" /></label>'+
           '<label class="minifield grow">How often<select data-f="freq" class="mini">'+freqOpts+'</select></label>'+
-          '<label class="minifield">How many<input data-f="count" class="mini" type="number" step="1" min="0" value="'+(r.count||0)+'" /></label>'+
-          '<button data-f="del" class="del rec-del" aria-label="Remove '+esc(r.name)+'">×</button>'+
+          '<label class="minifield">How many<input data-f="count" class="mini" type="number" step="1" min="1" value="'+(r.count||"")+'" /></label>'+
+          '<button data-f="del" class="del rec-del" aria-label="Remove this one">×</button>'+
         '</div>'+
         '<p class="rec-summary" data-f="summary"></p>';
 
+      function after(){ App.save(); summarise(card,r); showProblems(card, App.validate.recurring(r), REC_FIELDS); App.render(); }
       f(card,"emoji").addEventListener("input",function(){ r.emoji=this.value; App.save(); });
-      f(card,"name").addEventListener("input",function(){ r.name=this.value; App.save(); summarise(card,r); });
-      f(card,"type").addEventListener("change",function(){ r.type=this.value; App.save(); summarise(card,r); });
-      f(card,"amount").addEventListener("input",function(){ r.amount=this.value===""?0:parseFloat(this.value); App.save(); summarise(card,r); });
-      f(card,"start").addEventListener("change",function(){ if(this.value){ var p=this.value.split("-"); r.start=(+p[0])+"-"+(p[1]-1)+"-"+(+p[2]); App.save(); summarise(card,r); } });
-      f(card,"freq").addEventListener("change",function(){ r.freq=this.value; App.save(); summarise(card,r); });
-      f(card,"count").addEventListener("input",function(){ r.count=parseInt(this.value,10)||0; App.save(); summarise(card,r); });
+      f(card,"name").addEventListener("input",function(){ r.name=this.value; after(); });
+      f(card,"type").addEventListener("change",function(){ r.type=this.value; after(); });
+      f(card,"amount").addEventListener("input",function(){ r.amount=this.value===""?null:parseFloat(this.value); after(); });
+      f(card,"start").addEventListener("change",function(){
+        if(this.value){ var p=this.value.split("-"); r.start=(+p[0])+"-"+(p[1]-1)+"-"+(+p[2]); } else { r.start=""; }
+        after();
+      });
+      f(card,"freq").addEventListener("change",function(){ r.freq=this.value; after(); });
+      f(card,"count").addEventListener("input",function(){ r.count=this.value===""?"":parseInt(this.value,10); after(); });
       f(card,"del").addEventListener("click",function(){ state.recurring.splice(idx,1); App.save(); renderRecTable(); App.render(); });
 
       summarise(card,r);
+      if(!App.validate.untouchedRec(r)) showProblems(card, App.validate.recurring(r), REC_FIELDS);
       box.appendChild(card);
     });
   }
@@ -102,8 +138,67 @@
     var when=function(d){ return d.getDate()+" "+App.MON3[d.getMonth()]+" "+d.getFullYear(); };
     el.textContent = App.fmtMoney(r.amount||0) + (r.type==="in"?" in":" out") + ", " + freq +
       ", " + occ.length + (occ.length===1?" time":" times") +
-      " — " + when(occ[0]) + " to " + when(last) + ".";
+      ", from " + when(occ[0]) + " to " + when(last) + ".";
+  }
+
+  // ---- adding rows ----
+  // Refuse to stack up a second blank row while the first is still unfinished.
+  function addTagRow(){
+    var state=App.state;
+    var unfinished=firstProblemIndex(state.tags, App.validate.tag);
+    if(unfinished>-1) return focusProblem("#tagsTable .row-wrap", unfinished, "Finish this one first, then you can add another.");
+    state.tags.push({name:"",type:"out",amount:null,emoji:""}); App.save(); renderTagsTable();
+    focusLast("#tagsTable .row-wrap", "name");
+  }
+  function addRecRow(){
+    var state=App.state;
+    var unfinished=firstProblemIndex(state.recurring, App.validate.recurring);
+    if(unfinished>-1) return focusProblem("#recTable .rec-card", unfinished, "Finish this one first, then you can add another.");
+    state.recurring.push({id:"r"+Date.now(), name:"", type:"out", amount:null, emoji:"", start:App.dk(new Date()), freq:"monthly", count:12});
+    App.save(); renderRecTable();
+    focusLast("#recTable .rec-card", "name");
+  }
+  function firstProblemIndex(list, check){
+    for(var i=0;i<list.length;i++){ if(check(list[i]).length) return i; }
+    return -1;
+  }
+  function focusProblem(sel, idx, note){
+    var rows=document.querySelectorAll(sel), row=rows[idx];
+    if(!row) return;
+    row.scrollIntoView({block:"center"});
+    row.classList.add("flash");
+    setTimeout(function(){ row.classList.remove("flash"); }, 900);
+    var box=row.querySelector(".row-errors");
+    if(box && note && !box.querySelector(".err-note")){
+      var p=document.createElement("p"); p.className="err err-note"; p.textContent=note; box.appendChild(p);
+      setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, 4000);
+    }
+    var bad=row.querySelector(".invalid"); if(bad) bad.focus();
+  }
+  function focusLast(sel, field){
+    var rows=document.querySelectorAll(sel), row=rows[rows.length-1];
+    if(!row) return;
+    row.scrollIntoView({block:"center"});
+    var el=row.querySelector('[data-f="'+field+'"]'); if(el) el.focus();
+  }
+
+  // ---- closing ----
+  // Untouched rows are dropped quietly. Half finished ones are held back.
+  function tryClose(){
+    var state=App.state, dropped=false;
+    state.tags=state.tags.filter(function(t){ if(App.validate.untouchedTag(t)){ dropped=true; return false; } return true; });
+    state.recurring=state.recurring.filter(function(r){ if(App.validate.untouchedRec(r)){ dropped=true; return false; } return true; });
+    if(dropped){ App.save(); renderTagsTable(); renderRecTable(); }
+
+    var badTag=firstProblemIndex(state.tags, App.validate.tag);
+    var badRec=firstProblemIndex(state.recurring, App.validate.recurring);
+    if(badTag>-1){ focusProblem("#tagsTable .row-wrap", badTag, "Fix this to close, or press × to remove the row."); return false; }
+    if(badRec>-1){ focusProblem("#recTable .rec-card", badRec, "Fix this to close, or press × to remove the row."); return false; }
+
+    App.hide("setScrim"); App.render();
+    return true;
   }
 
   App.openSettings=openSettings; App.renderTagsTable=renderTagsTable; App.renderRecTable=renderRecTable;
+  App.addTagRow=addTagRow; App.addRecRow=addRecRow; App.trySettingsClose=tryClose;
 })(window.App);
