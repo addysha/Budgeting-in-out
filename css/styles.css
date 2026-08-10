@@ -103,7 +103,8 @@ body{
 .sheet.wide{max-width:620px}
 .sheet h2{margin:0; font-size:18px; padding:18px 20px 4px}
 .sheet .date-sub{padding:0 20px 12px; color:var(--sub); font-size:13px; border-bottom:1px solid var(--line)}
-.sheet-body{padding:16px 20px}
+/* extra room at the bottom so the last line clears the sticky Done bar */
+.sheet-body{padding:16px 20px 20px}
 .entry-row{display:flex; align-items:center; gap:8px; padding:9px 0}
 .entry-row + .entry-row{border-top:1px solid var(--line)}
 .entry-row .lead{width:20px; text-align:center}
@@ -142,11 +143,42 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 .checkline{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--sub)}
 .checkline input{width:auto}
 
-.rowgrid{display:grid; gap:8px; align-items:center}
-.tags-table .tag-row{grid-template-columns:44px 1.3fr .8fr .9fr auto; display:grid; gap:8px; align-items:center}
-.rec-table .rec-row{grid-template-columns:44px 1.2fr .7fr .8fr 1fr .9fr .7fr auto; display:grid; gap:6px; align-items:center}
+/* tags: a compact table, headers sitting above their own columns */
+.tags-table{display:flex; flex-direction:column; gap:8px}
+.tags-table .tag-row{display:grid; grid-template-columns:52px minmax(0,1.5fr) 92px 110px 28px; gap:8px; align-items:center}
+.tags-table .tag-row.head{gap:8px; padding:0 0 2px}
+.tags-table .tag-row.head .colhead{padding-left:2px}
+
+/* repeating items: too many fields for one line, so each is a labelled card */
+.rec-table{display:flex; flex-direction:column; gap:10px}
+.rec-card{border:1px solid var(--line); border-radius:11px; padding:11px 12px 9px; background:#fafafb; display:flex; flex-direction:column; gap:8px}
+.rec-line{display:flex; gap:8px; align-items:flex-end}
+.rec-line .grow{flex:1; min-width:0}
+.minifield{display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--sub); min-width:0}
+.minifield.emoji-col{width:52px; flex:none}
+.rec-del{align-self:flex-end; margin-bottom:3px}
+.rec-summary{margin:2px 0 0; font-size:12px; color:var(--sub); font-variant-numeric:tabular-nums}
+/* On a phone five columns squeeze the name to nothing, so each tag becomes a
+   two-line card instead: emoji and name on top, in/out and amount beneath. */
+@media (max-width:560px){
+  .rec-line{flex-wrap:wrap}
+  .tags-table .tag-row.head{display:none}
+  .tags-table .tag-row{
+    grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 28px;
+    grid-template-areas:"emoji name name del" "type type amount amount";
+    gap:6px; padding:8px; background:#fafafb;
+    border:1px solid var(--line); border-radius:10px;
+  }
+  .tags-table .tag-row [data-f="emoji"]{grid-area:emoji}
+  .tags-table .tag-row [data-f="name"]{grid-area:name}
+  .tags-table .tag-row [data-f="del"]{grid-area:del}
+  .tags-table .tag-row [data-f="type"]{grid-area:type}
+  .tags-table .tag-row [data-f="amount"]{grid-area:amount}
+}
+
 .mini{font-size:13px; padding:7px 8px !important}
 .hint{font-size:12px; color:var(--sub); margin:2px 0 0}
-.addrow{align-self:flex-start; margin-top:6px}
-.section-h{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);font-weight:600;margin:20px 0 8px}
+.empty-note{font-size:13px; color:var(--sub); margin:0; padding:12px 13px; background:#fafafb; border:1px dashed var(--line-strong); border-radius:10px}
+.addrow{align-self:flex-start; margin-top:10px}
+.section-h{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);font-weight:600;margin:22px 0 8px}
 .colhead{font-size:11px;color:var(--sub)}

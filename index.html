@@ -82,18 +82,20 @@
 <div class="scrim" id="setScrim">
   <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <h2 id="setTitle">Your ins &amp; outs</h2>
-    <div class="date-sub">Define salary, bills and subscriptions once. Leave Amount blank for variable ones.</div>
+    <div class="date-sub">Set things up once here, so you don't type them again every week.</div>
     <div class="sheet-body">
-      <div class="section-h">Tags</div>
-      <div class="tags-table rowgrid" id="tagsTable"></div>
-      <button class="btn addrow" id="addTagRow">＋ Add a tag</button>
+      <div class="section-h">Things you add often</div>
+      <p class="hint">Shortcuts you can pick from when adding to a day. Leave the amount blank if it changes each time, like groceries.</p>
+      <div class="tags-table" id="tagsTable"></div>
+      <button class="btn addrow" id="addTagRow">＋ Add one</button>
 
-      <div class="section-h">Repeating items</div>
-      <p class="hint">Set an amount, a start date and how often it repeats. It fills the calendar automatically — no need to add it by hand.</p>
+      <div class="section-h">Things that repeat</div>
+      <p class="hint">Pay, rent, subscriptions. Say when the first one is and how often it comes back, and the calendar fills itself in.</p>
       <div class="rec-table" id="recTable"></div>
       <button class="btn addrow" id="addRecRow">＋ Add a repeating item</button>
 
       <div class="section-h">Starting balance</div>
+      <p class="hint">What you had in the bank when you started, so the running totals mean something.</p>
       <div class="row2">
         <label class="field">Balance at the start<input type="number" id="startBal" step="0.01" /></label>
         <label class="field">Starting month
