@@ -13,7 +13,7 @@ window.App = window.App || {};
   App.FREQS = [["weekly","Weekly"],["fortnightly","Every 2 weeks"],["monthly","Monthly"],["yearly","Yearly"]];
 
   // What a brand-new user starts with. Amounts are left blank on purpose so
-  // nobody inherits someone else's figures — tracking starts this month.
+  // nobody inherits someone else's figures - tracking starts this month.
   var now = new Date();
   App.DEFAULTS = {
     startBalance:0, startY:now.getFullYear(), startM:now.getMonth(),
@@ -25,6 +25,9 @@ window.App = window.App || {};
       {name:"Subscription", type:"out", amount:null, emoji:"🎵"}
     ],
     recurring:[],
-    entries:{}
+    entries:{},
+    // Your own calls on what's essential vs. cuttable, keyed by lower-cased name.
+    // Empty to start: the savings view guesses from keywords until you say otherwise.
+    spendClass:{}
   };
 })(window.App);

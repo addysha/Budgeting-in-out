@@ -1,5 +1,5 @@
 /* Auto-backup to a real file on disk.
-   Browsers can't be trusted to keep localStorage forever — clearing site data
+   Browsers can't be trusted to keep localStorage forever - clearing site data
    wipes it. So you pick a JSON file once (put it somewhere that syncs, like
    OneDrive) and every change is rewritten to it.
 
@@ -46,7 +46,7 @@
   // ---- what counts as a real budget ----
   function looksLikeBudget(o){ return !!(o && o.tags && o.entries && typeof o.entries==="object"); }
   function countEntries(o){ var n=0; for(var k in o.entries) n+=(o.entries[k]||[]).length; return n; }
-  // "Nothing worth keeping yet" — a fresh install, or one that's just been wiped.
+  // "Nothing worth keeping yet" - a fresh install, or one that's just been wiped.
   function isBlank(o){ return countEntries(o)===0 && (!o.recurring||o.recurring.length===0) && !o.startBalance; }
 
   function readFile(h){
@@ -122,7 +122,7 @@
         return readFile(h).then(function(existing){
           handle=h; granted=true;
           return putHandle(h).then(function(){
-            // The file already holds a budget — never clobber it without asking.
+            // The file already holds a budget - never clobber it without asking.
             if(existing && countEntries(existing)>0){
               if(isBlank(App.state)) return offerLoad(existing, true);
               return askWhichWins(existing);

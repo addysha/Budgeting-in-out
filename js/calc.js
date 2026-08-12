@@ -37,10 +37,13 @@
     return out;
   }
 
+  // The callback gets each item plus where it came from: "manual" for a
+  // hand-typed entry, "recurring" for one landing of a repeat rule. Callers that
+  // only want the money (like totals) can ignore the second argument.
   function eachItemInRange(s,e,cb){
     var state=App.state, ts=App.T(s), te=App.T(e);
-    for(var key in state.entries){ var d=App.pk(key), t=App.T(d); if(t>=ts&&t<=te){ var l=state.entries[key]; for(var i=0;i<l.length;i++) cb(l[i]); } }
-    for(var r=0;r<state.recurring.length;r++){ var occ=ruleOcc(state.recurring[r]), rule=state.recurring[r]; for(var j=0;j<occ.length;j++){ var t2=App.T(occ[j]); if(t2>=ts&&t2<=te) cb(rule); } }
+    for(var key in state.entries){ var d=App.pk(key), t=App.T(d); if(t>=ts&&t<=te){ var l=state.entries[key]; for(var i=0;i<l.length;i++) cb(l[i], "manual"); } }
+    for(var r=0;r<state.recurring.length;r++){ var occ=ruleOcc(state.recurring[r]), rule=state.recurring[r]; for(var j=0;j<occ.length;j++){ var t2=App.T(occ[j]); if(t2>=ts&&t2<=te) cb(rule, "recurring"); } }
   }
 
   function totals(s,e){ var inS=0,outS=0; eachItemInRange(s,e,function(it){ if(it.type==="in") inS+=it.amount; else outS+=it.amount; }); return {inS:inS,outS:outS}; }

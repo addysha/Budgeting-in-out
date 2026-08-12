@@ -20,6 +20,8 @@
   document.getElementById("prev").addEventListener("click", function(){ step(-1); });
   document.getElementById("next").addEventListener("click", function(){ step(1); });
   document.getElementById("today").addEventListener("click", function(){ App.view.anchor=new Date(); App.render(); });
+  document.getElementById("savingsBtn").addEventListener("click", App.openSavings);
+  document.getElementById("savClose").addEventListener("click", function(){ hide("savScrim"); });
   document.getElementById("settingsBtn").addEventListener("click", App.openSettings);
 
   // ---- day sheet ----
@@ -65,6 +67,7 @@
   document.addEventListener("keydown", function(e){
     if(e.key!=="Escape") return;
     hide("dayScrim");
+    hide("savScrim");
     if(document.getElementById("setScrim").classList.contains("show")) App.trySettingsClose();
   });
 

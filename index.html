@@ -28,6 +28,7 @@
         <button id="today" class="mid">Today</button>
         <button id="next" aria-label="Next">›</button>
       </div>
+      <button class="btn" id="savingsBtn">💡 Savings</button>
       <button class="btn" id="settingsBtn">⚙︎ Ins &amp; Outs</button>
     </div>
   </div>
@@ -126,6 +127,16 @@
   </div>
 </div>
 
+<!-- Savings modal -->
+<div class="scrim" id="savScrim">
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="savTitle">
+    <h2 id="savTitle">Where your money goes</h2>
+    <div class="date-sub" id="savSub"></div>
+    <div class="sheet-body" id="savBody"></div>
+    <div class="sheet-foot"><button class="btn" id="savClose">Done</button></div>
+  </div>
+</div>
+
 <!-- Scripts load in order: data, then helpers, then views, then wiring. -->
 <script src="js/config.js"></script>
 <script src="js/store.js"></script>
@@ -135,6 +146,7 @@
 <script src="js/render.js"></script>
 <script src="js/day-modal.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/savings.js"></script>
 <script src="js/export.js"></script>
 <script src="js/backup.js"></script>
 <script src="js/main.js"></script>
