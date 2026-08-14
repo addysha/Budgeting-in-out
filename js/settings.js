@@ -47,6 +47,34 @@
 
   var TAG_FIELDS=["name","amount"], REC_FIELDS=["name","amount","start","freq","count"];
 
+  // ---- drag to reorder the tags ----
+  // The row being dragged carries a "dragging" class; the container handler
+  // slides it above whichever row the pointer is over, and the new on-screen
+  // order is written back to the tags array when the drag ends.
+  function getDragAfterElement(container, y){
+    var els=Array.prototype.slice.call(container.querySelectorAll('.row-wrap:not(.dragging)'));
+    var best=null, bestOff=-Infinity;
+    for(var i=0;i<els.length;i++){
+      var b=els[i].getBoundingClientRect(), off=y-b.top-b.height/2;
+      if(off<0 && off>bestOff){ bestOff=off; best=els[i]; }
+    }
+    return best;
+  }
+  function onTagsDragOver(e){
+    var box=e.currentTarget, dragging=box.querySelector('.row-wrap.dragging');
+    if(!dragging) return;
+    e.preventDefault();
+    var after=getDragAfterElement(box, e.clientY);
+    if(after==null) box.appendChild(dragging); else box.insertBefore(dragging, after);
+  }
+  function commitTagOrder(){
+    var box=document.getElementById("tagsTable");
+    var order=Array.prototype.slice.call(box.querySelectorAll('.row-wrap')).map(function(el){ return parseInt(el.getAttribute("data-idx"),10); });
+    if(!order.some(function(v,i){ return v!==i; })) return; // nothing actually moved
+    App.state.tags=order.map(function(i){ return App.state.tags[i]; });
+    App.save(); renderTagsTable(); App.render();
+  }
+
   // ---- tags ----
   function renderTagsTable(){
     var state=App.state, esc=App.esc, box=document.getElementById("tagsTable");
@@ -59,13 +87,20 @@
 
     var head=document.createElement("div");
     head.className="tag-row head";
-    head.innerHTML='<div class="colhead">Emoji</div><div class="colhead">Name</div><div class="colhead">In or out</div><div class="colhead">Usual amount</div><div></div>';
+    head.innerHTML='<div></div><div class="colhead">Emoji</div><div class="colhead">Name</div><div class="colhead">In or out</div><div class="colhead">Usual amount</div><div></div>';
     box.appendChild(head);
 
+    // Wire drag-reordering onto the container once; it survives re-renders.
+    if(!box._dndWired){ box._dndWired=true;
+      box.addEventListener("dragover", onTagsDragOver);
+      box.addEventListener("drop", function(e){ if(box.querySelector(".row-wrap.dragging")) e.preventDefault(); });
+    }
+
     state.tags.forEach(function(t,idx){
-      var wrap=document.createElement("div"); wrap.className="row-wrap";
+      var wrap=document.createElement("div"); wrap.className="row-wrap"; wrap.setAttribute("data-idx", idx);
       var row=document.createElement("div"); row.className="tag-row";
-      row.innerHTML='<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(t.emoji||"")+'" aria-label="Emoji" />'+
+      row.innerHTML='<button type="button" data-f="grip" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>'+
+        '<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(t.emoji||"")+'" aria-label="Emoji" />'+
         '<input data-f="name" class="mini" type="text" value="'+esc(t.name)+'" placeholder="Name" aria-label="Name" />'+
         '<select data-f="type" class="mini" aria-label="In or out">'+typeOptions(t.type)+'</select>'+
         '<input data-f="amount" class="mini" type="number" step="0.01" min="0" value="'+(t.amount!=null?t.amount:"")+'" placeholder="Varies" aria-label="Usual amount" />'+
@@ -81,6 +116,16 @@
         App.save(); recheck();
       });
       f(row,"del").addEventListener("click",function(){ state.tags.splice(idx,1); App.save(); renderTagsTable(); App.render(); });
+
+      var grip=f(row,"grip");
+      grip.addEventListener("dragstart",function(e){
+        wrap.classList.add("dragging");
+        e.dataTransfer.effectAllowed="move";
+        try{ e.dataTransfer.setData("text/plain", String(idx)); }catch(_){}
+        if(e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(wrap, 16, 16);
+      });
+      grip.addEventListener("dragend",function(){ wrap.classList.remove("dragging"); commitTagOrder(); });
+      grip.addEventListener("click",function(e){ e.preventDefault(); });
 
       // Only nag about a row already worked on, not one just added.
       if(!App.validate.untouchedTag(t)) recheck();

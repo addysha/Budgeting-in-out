@@ -12,28 +12,20 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
-  font-family:var(--font); color:var(--ink);
-  background:linear-gradient(135deg,#cfd3da,#b9bec8 60%,#a9aeb9) fixed;
+  font-family:var(--font); color:var(--ink); background:var(--bg);
   min-height:100vh; -webkit-font-smoothing:antialiased;
-  padding:22px; display:flex; justify-content:center; align-items:flex-start;
 }
-@media (max-width:640px){ body{padding:0} }
 
+/* Full-bleed: the calendar owns the whole window rather than sitting in a card. */
 .window{
-  width:100%; max-width:1120px; background:var(--bg);
-  border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+  width:100%; min-height:100vh; background:var(--bg); overflow:hidden;
   display:flex; flex-direction:column;
 }
-@media (max-width:640px){ .window{border-radius:0} }
 
 .titlebar{display:flex; align-items:center; gap:14px; padding:11px 14px; background:var(--chrome); border-bottom:1px solid var(--chrome-line)}
-.lights{display:flex; gap:8px}
-.lights i{width:12px;height:12px;border-radius:50%;display:block}
-.lights .r{background:#ff5f57} .lights .y{background:#febc2e} .lights .g{background:#28c840}
 .seg{margin:0 auto; display:flex; background:#e4e4e8; border-radius:9px; padding:2px}
 .seg button{border:0; background:transparent; font:inherit; font-size:13px; color:var(--sub); padding:5px 16px; border-radius:7px; cursor:pointer}
 .seg button.active{background:#fff; color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.14); font-weight:600}
-.titlebar-spacer{width:56px}
 
 .toolbar{display:flex; align-items:flex-end; gap:16px; padding:18px 22px 14px; flex-wrap:wrap}
 .month-title{font-size:28px; font-weight:800; letter-spacing:-.5px; line-height:1.05}
@@ -60,9 +52,12 @@ body{
 .weekdays div:first-child{border-left:0}
 .weekdays.hidden{display:none}
 
-.grid{display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:minmax(104px,auto); border-top:1px solid var(--line)}
-.grid.week{grid-auto-rows:minmax(440px,auto)}
-.cell{border-left:1px solid var(--line); border-bottom:1px solid var(--line); min-height:104px; padding:6px 7px 8px; cursor:pointer; overflow:hidden; background:#fff; display:flex; flex-direction:column; gap:4px}
+/* The calendar area takes whatever height is left under the toolbar, so the
+   month grid stretches to fill the screen instead of leaving it half empty. */
+#main{flex:1 1 auto; display:flex; flex-direction:column}
+.grid{flex:1 1 auto; display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:minmax(140px,1fr); border-top:1px solid var(--line)}
+.grid.week{grid-auto-rows:minmax(440px,1fr)}
+.cell{border-left:1px solid var(--line); border-bottom:1px solid var(--line); min-height:140px; padding:8px 10px 10px; cursor:pointer; overflow:hidden; background:#fff; display:flex; flex-direction:column; gap:5px}
 .cell:nth-child(7n+1){border-left:0}
 .cell:hover{background:#fafafe}
 .cell.dim{background:#fbfbfc}
@@ -145,9 +140,13 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 
 /* tags: a compact table, headers sitting above their own columns */
 .tags-table{display:flex; flex-direction:column; gap:8px}
-.tags-table .tag-row{display:grid; grid-template-columns:52px minmax(0,1.5fr) 92px 110px 28px; gap:8px; align-items:center}
+.tags-table .tag-row{display:grid; grid-template-columns:22px 52px minmax(0,1.5fr) 92px 110px 28px; gap:8px; align-items:center}
 .tags-table .tag-row.head{gap:8px; padding:0 0 2px}
 .tags-table .tag-row.head .colhead{padding-left:2px}
+.tags-table .grip{border:0; background:transparent; color:var(--faint); cursor:grab; font-size:15px; line-height:1; padding:2px 0; text-align:center}
+.tags-table .grip:hover{color:var(--sub)}
+.tags-table .grip:active{cursor:grabbing}
+.tags-table .row-wrap.dragging{opacity:.45}
 
 /* repeating items: too many fields for one line, so each is a labelled card */
 .rec-table{display:flex; flex-direction:column; gap:10px}
@@ -163,6 +162,7 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 @media (max-width:560px){
   .rec-line{flex-wrap:wrap}
   .tags-table .tag-row.head{display:none}
+  .tags-table .grip{display:none}
   .tags-table .tag-row{
     grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 28px;
     grid-template-areas:"emoji name name del" "type type amount amount";

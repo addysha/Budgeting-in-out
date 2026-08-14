@@ -70,7 +70,7 @@
     var grid=document.createElement("div"); grid.className="grid";
     var a=App.view.anchor, first=new Date(a.getFullYear(),a.getMonth(),1);
     var offset=(first.getDay()+6)%7, start=App.addDays(first,-offset);
-    for(var i=0;i<42;i++){ var d=App.addDays(start,i); grid.appendChild(dayCell(d, d.getMonth()!==a.getMonth(), 3)); }
+    for(var i=0;i<42;i++){ var d=App.addDays(start,i); grid.appendChild(dayCell(d, d.getMonth()!==a.getMonth(), 5)); }
     main.appendChild(grid);
   }
 
