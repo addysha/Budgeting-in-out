@@ -143,10 +143,11 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 .tags-table .tag-row{display:grid; grid-template-columns:22px 52px minmax(0,1.5fr) 92px 110px 28px; gap:8px; align-items:center}
 .tags-table .tag-row.head{gap:8px; padding:0 0 2px}
 .tags-table .tag-row.head .colhead{padding-left:2px}
-.tags-table .grip{border:0; background:transparent; color:var(--faint); cursor:grab; font-size:15px; line-height:1; padding:2px 0; text-align:center}
-.tags-table .grip:hover{color:var(--sub)}
-.tags-table .grip:active{cursor:grabbing}
-.tags-table .row-wrap.dragging{opacity:.45}
+.grip{border:0; background:transparent; color:var(--faint); cursor:grab; font-size:15px; line-height:1; padding:2px 0; text-align:center; touch-action:none; -webkit-user-select:none; user-select:none}
+.grip:hover{color:var(--sub)}
+.grip:active{cursor:grabbing}
+.row-wrap.dragging, .rec-card.dragging{opacity:.45}
+.rec-grip{align-self:flex-end; margin-bottom:8px; flex:none}
 
 /* repeating items: too many fields for one line, so each is a labelled card */
 .rec-table{display:flex; flex-direction:column; gap:10px}
@@ -162,13 +163,13 @@ select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; bo
 @media (max-width:560px){
   .rec-line{flex-wrap:wrap}
   .tags-table .tag-row.head{display:none}
-  .tags-table .grip{display:none}
   .tags-table .tag-row{
-    grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 28px;
-    grid-template-areas:"emoji name name del" "type type amount amount";
+    grid-template-columns:20px 44px minmax(0,1fr) 28px;
+    grid-template-areas:"grip emoji name del" "grip type amount amount";
     gap:6px; padding:8px; background:#fafafb;
     border:1px solid var(--line); border-radius:10px;
   }
+  .tags-table .tag-row [data-f="grip"]{grid-area:grip; align-self:center}
   .tags-table .tag-row [data-f="emoji"]{grid-area:emoji}
   .tags-table .tag-row [data-f="name"]{grid-area:name}
   .tags-table .tag-row [data-f="del"]{grid-area:del}

@@ -47,12 +47,13 @@
 
   var TAG_FIELDS=["name","amount"], REC_FIELDS=["name","amount","start","freq","count"];
 
-  // ---- drag to reorder the tags ----
-  // The row being dragged carries a "dragging" class; the container handler
-  // slides it above whichever row the pointer is over, and the new on-screen
-  // order is written back to the tags array when the drag ends.
-  function getDragAfterElement(container, y){
-    var els=Array.prototype.slice.call(container.querySelectorAll('.row-wrap:not(.dragging)'));
+  // ---- drag to reorder, via Pointer Events so it works with mouse, touch and pen ----
+  // A grip inside each item starts the drag; the item being moved carries a
+  // "dragging" class and is slid above whichever sibling the pointer is over.
+  // On release the new on-screen order is written back to the matching list.
+  var _sort=null; // {box, itemSel, el, listKey, rerender}
+  function sortAfter(box, itemSel, y){
+    var els=Array.prototype.slice.call(box.querySelectorAll(itemSel+":not(.dragging)"));
     var best=null, bestOff=-Infinity;
     for(var i=0;i<els.length;i++){
       var b=els[i].getBoundingClientRect(), off=y-b.top-b.height/2;
@@ -60,19 +61,55 @@
     }
     return best;
   }
-  function onTagsDragOver(e){
-    var box=e.currentTarget, dragging=box.querySelector('.row-wrap.dragging');
-    if(!dragging) return;
-    e.preventDefault();
-    var after=getDragAfterElement(box, e.clientY);
-    if(after==null) box.appendChild(dragging); else box.insertBefore(dragging, after);
+  // Reorder with a FLIP animation so rows glide to their new spots instead of
+  // snapping: note where every row is (First), move the dragged one (Last),
+  // offset each row back to where it was (Invert), then let it transition (Play).
+  function moveWithFlip(box, itemSel, el, after){
+    var items=Array.prototype.slice.call(box.querySelectorAll(itemSel));
+    // Do nothing if the order wouldn't actually change, so animations don't restart mid-glide.
+    var noChange = after==null ? (items[items.length-1]===el) : (after.previousElementSibling===el);
+    if(noChange) return;
+    var firsts=items.map(function(s){ return s.getBoundingClientRect().top; });
+    if(after==null) box.appendChild(el); else box.insertBefore(el, after);
+    for(var i=0;i<items.length;i++){
+      var s=items[i];
+      s.style.transition="none"; s.style.transform="";
+      var dy=firsts[i]-s.getBoundingClientRect().top;
+      if(!dy) continue;
+      s.style.transform="translateY("+dy+"px)";
+      s.getBoundingClientRect(); // force the offset to apply before transitioning it away
+      s.style.transition="transform 160ms ease";
+      s.style.transform="";
+    }
   }
-  function commitTagOrder(){
-    var box=document.getElementById("tagsTable");
-    var order=Array.prototype.slice.call(box.querySelectorAll('.row-wrap')).map(function(el){ return parseInt(el.getAttribute("data-idx"),10); });
-    if(!order.some(function(v,i){ return v!==i; })) return; // nothing actually moved
-    App.state.tags=order.map(function(i){ return App.state.tags[i]; });
-    App.save(); renderTagsTable(); App.render();
+  function enableSort(box, itemSel, listKey, rerender){
+    if(box._sortWired) return; box._sortWired=true;
+    box.addEventListener("pointerdown", function(e){
+      var grip=e.target.closest(".grip"); if(!grip || !box.contains(grip)) return;
+      if(e.pointerType==="mouse" && e.button!==0) return;      // left button / any touch
+      var el=grip.closest(itemSel); if(!el) return;
+      e.preventDefault();                                       // stop text selection / scroll
+      el.classList.add("dragging");
+      _sort={box:box, itemSel:itemSel, el:el, listKey:listKey, rerender:rerender};
+      try{ box.setPointerCapture(e.pointerId); }catch(_){}      // keep events flowing to the list
+    });
+    box.addEventListener("pointermove", function(e){
+      if(!_sort || _sort.box!==box) return;
+      moveWithFlip(box, itemSel, _sort.el, sortAfter(box, itemSel, e.clientY));
+    });
+    function finish(e){
+      if(!_sort || _sort.box!==box) return;
+      _sort.el.classList.remove("dragging");
+      try{ box.releasePointerCapture(e.pointerId); }catch(_){}
+      var listKey=_sort.listKey, rerender=_sort.rerender; _sort=null;
+      var order=Array.prototype.slice.call(box.querySelectorAll(itemSel)).map(function(el){ return parseInt(el.getAttribute("data-idx"),10); });
+      if(order.some(function(v,i){ return v!==i; })){          // only rewrite if it actually moved
+        App.state[listKey]=order.map(function(i){ return App.state[listKey][i]; });
+        App.save(); rerender(); App.render();
+      }
+    }
+    box.addEventListener("pointerup", finish);
+    box.addEventListener("pointercancel", finish);
   }
 
   // ---- tags ----
@@ -90,16 +127,12 @@
     head.innerHTML='<div></div><div class="colhead">Emoji</div><div class="colhead">Name</div><div class="colhead">In or out</div><div class="colhead">Usual amount</div><div></div>';
     box.appendChild(head);
 
-    // Wire drag-reordering onto the container once; it survives re-renders.
-    if(!box._dndWired){ box._dndWired=true;
-      box.addEventListener("dragover", onTagsDragOver);
-      box.addEventListener("drop", function(e){ if(box.querySelector(".row-wrap.dragging")) e.preventDefault(); });
-    }
+    enableSort(box, ".row-wrap", "tags", renderTagsTable);
 
     state.tags.forEach(function(t,idx){
       var wrap=document.createElement("div"); wrap.className="row-wrap"; wrap.setAttribute("data-idx", idx);
       var row=document.createElement("div"); row.className="tag-row";
-      row.innerHTML='<button type="button" data-f="grip" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>'+
+      row.innerHTML='<button type="button" data-f="grip" class="grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>'+
         '<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(t.emoji||"")+'" aria-label="Emoji" />'+
         '<input data-f="name" class="mini" type="text" value="'+esc(t.name)+'" placeholder="Name" aria-label="Name" />'+
         '<select data-f="type" class="mini" aria-label="In or out">'+typeOptions(t.type)+'</select>'+
@@ -117,16 +150,6 @@
       });
       f(row,"del").addEventListener("click",function(){ state.tags.splice(idx,1); App.save(); renderTagsTable(); App.render(); });
 
-      var grip=f(row,"grip");
-      grip.addEventListener("dragstart",function(e){
-        wrap.classList.add("dragging");
-        e.dataTransfer.effectAllowed="move";
-        try{ e.dataTransfer.setData("text/plain", String(idx)); }catch(_){}
-        if(e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(wrap, 16, 16);
-      });
-      grip.addEventListener("dragend",function(){ wrap.classList.remove("dragging"); commitTagOrder(); });
-      grip.addEventListener("click",function(e){ e.preventDefault(); });
-
       // Only nag about a row already worked on, not one just added.
       if(!App.validate.untouchedTag(t)) recheck();
       box.appendChild(wrap);
@@ -137,6 +160,7 @@
   function renderRecTable(){
     var state=App.state, esc=App.esc, box=document.getElementById("recTable");
     box.innerHTML="";
+    enableSort(box, ".rec-card", "recurring", renderRecTable);
 
     if(state.recurring.length===0){
       box.innerHTML='<p class="empty-note">Nothing repeating yet. Add your pay, rent or a subscription and it will fill itself in on the calendar.</p>';
@@ -144,10 +168,11 @@
     }
 
     state.recurring.forEach(function(r,idx){
-      var card=document.createElement("div"); card.className="rec-card";
+      var card=document.createElement("div"); card.className="rec-card"; card.setAttribute("data-idx", idx);
       var freqOpts=App.FREQS.map(function(x){ return '<option value="'+x[0]+'"'+(r.freq===x[0]?" selected":"")+'>'+x[1]+'</option>'; }).join("");
       card.innerHTML=
         '<div class="rec-line">'+
+          '<button type="button" data-f="grip" class="grip rec-grip" aria-label="Drag to reorder" title="Drag to reorder">⠿</button>'+
           '<label class="minifield emoji-col">Emoji<input data-f="emoji" class="mini emoji-input" maxlength="4" value="'+esc(r.emoji||"")+'" /></label>'+
           '<label class="minifield grow">Name<input data-f="name" class="mini" type="text" value="'+esc(r.name)+'" placeholder="e.g. Rent" /></label>'+
           '<label class="minifield">In or out<select data-f="type" class="mini">'+typeOptions(r.type)+'</select></label>'+
