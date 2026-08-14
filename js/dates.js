@@ -28,7 +28,17 @@
   }
   function today(){ return (new Date()).toISOString().slice(0,10); }
 
-  function fmtMoney(n){ var neg=n<0; n=Math.abs(Math.round(n)); var s="$"+n.toLocaleString("en-US"); return neg?"-"+s:s; }
+  // Show the real figure to the cent, but keep whole amounts clean: $4.99 stays
+  // $4.99, while $1,200 doesn't become $1,200.00. Rounding to whole cents first
+  // clears the tiny errors that adding floats leaves behind (e.g. 0.1+0.2).
+  function fmtMoney(n){
+    if(!isFinite(n)) n=0;
+    var neg=n<0, cents=Math.round(Math.abs(n)*100);
+    var whole=Math.floor(cents/100), rem=cents%100;
+    var s="$"+whole.toLocaleString("en-US");
+    if(rem) s+="."+(rem<10?"0":"")+rem;
+    return neg?"-"+s:s;
+  }
   function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 
   App.midnight=midnight; App.pk=pk; App.dk=dk;
